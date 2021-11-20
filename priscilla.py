@@ -1,5 +1,5 @@
 import argparse
-import os
+import uuid
 import csv
 from collections import OrderedDict
 
@@ -28,6 +28,8 @@ parser.add_argument('-l', '--prehead-layers', metavar='N', type=int, nargs=1,
                     required=True, help='Number of pre-head layers')
 parser.add_argument('-n', '--noise-len', metavar='N', type=int, nargs=1,
                     required=True, help='Length of the noise vector')
+parser.add_argument('-o', '--output', metavar='PATH', type=str, nargs=1,
+                    required=False, help='Path to write the CSV summary of the experiment to')
 
 args = parser.parse_args()
 
@@ -141,7 +143,7 @@ for iter in range(config['iterations']):
     else:
         best_fitness = compare(best_fitness, compare(fitness))
 
-    print(f'best: {best_fitness.item()}')
+    # print(f'best: {best_fitness.item()}')
     # ------------------- #
 
 config['best fitness'] = best_fitness.item()
@@ -149,7 +151,12 @@ config['utility function'] =  config['utility function'].__name__
 config['instance'] =  config['instance'].split('/')[-1]
 config['num trainable params'] = sum(p.numel() for p in model.parameters() if p.requires_grad)
 
-with open(f'{os.getpid()}.csv', 'w') as f:  # You will need 'wb' mode in Python 2.x
+if args.output != None:
+    fname = args.output[0]
+else:
+    fname = f'{str(uuid.uuid4())}.csv'
+
+with open(fname, 'w') as f:
     w = csv.DictWriter(f, config.keys())
     w.writeheader()
     w.writerow(config)
