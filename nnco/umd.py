@@ -4,6 +4,8 @@ import torch.nn.functional as F
 from torch import Tensor
 from torch.distributions.categorical import Categorical
 
+from typing import Tuple
+
 class UMDHead(nn.Module):
     def __init__(self, 
             input_dim: int = 128, 
@@ -22,7 +24,7 @@ class UMDHead(nn.Module):
             nn.Linear(input_dim, sample_length-i) for i in range(sample_length)
         ])
 
-    def forward(self, x: Tensor) -> tuple[Tensor, Tensor]:
+    def forward(self, x: Tensor) -> Tuple[Tensor, Tensor]:
         logps = []   # list of (batch_size, 1, num_samples) sized tensors
         samples = [] # same as `logps`
         for linear in self.linears:
