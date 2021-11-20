@@ -1,6 +1,7 @@
 import argparse
 import uuid
 import csv
+import time
 from collections import OrderedDict
 
 import torch
@@ -96,12 +97,15 @@ model = nn.Sequential(OrderedDict(prehead + [('head', head)]))
 optimizer = Adam(model.parameters(), lr=config['learning rate'])
 
 ## main loop
-best_fitness = None
-
 if config['problem'] == 'lop':
     compare = torch.max
 elif config['problem'] == 'pfsp':
     compare =  torch.min
+
+# fitness of the best solution found so far
+best_fitness = None
+# start time of the main loop, in order to measure the elapsed time later
+start_time = time.time()
 
 for iter in range(config['iterations']):
     x = torch.normal(mean=0, std=1, 
@@ -146,6 +150,7 @@ for iter in range(config['iterations']):
     # print(f'best: {best_fitness.item()}')
     # ------------------- #
 
+config['elapsed time in secs'] = time.time() - start_time
 config['best fitness'] = best_fitness.item()
 config['utility function'] =  config['utility function'].__name__
 config['instance'] =  config['instance'].split('/')[-1]
