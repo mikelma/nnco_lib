@@ -56,7 +56,6 @@ for iter in range(NUM_ITERS):
     # ---- logging ---- #
     if len(best_fitness) == 0 or fitness.min() < best_fitness[-1]:
         best_fitness.append(fitness.min().item())
-        loc = fitness.argmin().item()
     else:
         best_fitness.append(best_fitness[-1])
 
