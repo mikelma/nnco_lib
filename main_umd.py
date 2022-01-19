@@ -36,7 +36,6 @@ optimizer = Adam(model.parameters(), lr=LEARNING_RATE)
 best_fitness = []
 for iter in range(NUM_ITERS):
     x = torch.normal(mean=0, std=1, size=(BATCH_SIZE, NOISE_LEN))
-    # x = torch.rand(NOISE_LEN*BATCH_SIZE).view(BATCH_SIZE, NOISE_LEN)
     
     samples, logps = model(x)
 
