@@ -14,6 +14,8 @@ NUM_SAMPLES   = 64
 LEARNING_RATE = 0.003
 NOISE_LEN     = 128
 INSTANCE      = sys.argv[1] 
+NUM_PREHEAD   = 2
+HIDDEN_DIM    = 128
 
 problem = problems.pfsp.Pfsp(INSTANCE)
 
@@ -21,12 +23,14 @@ MAX_EVALS = 1000*problem.size**2
 NUM_ITERS = int(MAX_EVALS/(BATCH_SIZE*NUM_SAMPLES))
 
 model = nn.Sequential(
-            torch.nn.Linear(NOISE_LEN, NOISE_LEN),
-            torch.nn.ReLU(),
+            # torch.nn.Linear(NOISE_LEN, NOISE_LEN),
+            # torch.nn.ReLU(),
             UMDHead(
                 input_dim=NOISE_LEN,
                 sample_length=problem.size,
                 num_samples=NUM_SAMPLES,
+                hidden_dim=HIDDEN_DIM,
+                num_prehead_layers=NUM_PREHEAD,
                 # rho_function=rho_functions.LogPNormalization()
             ),
         )
