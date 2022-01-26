@@ -23,12 +23,13 @@ class UMDHead(nn.Module):
         self.num_prehead_layers = num_prehead_layers
 
         # add prehead layers
-        self.prehead_layers = []
+        layers = []
         for i in range(num_prehead_layers):
             in_dim = input_dim if i == 0 else hidden_dim
-            self.prehead_layers.append(nn.ModuleList([
+            layers.append(nn.ModuleList([
                 nn.Linear(in_dim, hidden_dim) for _ in range(sample_length)
             ]))
+        self.prehead_layers = nn.ModuleList(layers)
 
         # head layers
         in_dim = hidden_dim if num_prehead_layers > 0 else input_dim
