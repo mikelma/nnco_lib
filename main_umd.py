@@ -5,26 +5,32 @@ from torch.optim import Adam
 import torch.nn as nn
 from pypermu import problems
 from pypermu import utils as permutils
-from collections import OrderedDict
 from scipy.stats import entropy
 import numpy as np
 
+import wandb
+
 from nnco.umd import UMDHead
 from nnco import utility, rho_functions
-from log import log_to_csv
+# from log import log_to_csv
 
-BATCH_SIZE    = 32
-NUM_SAMPLES   = 64 
-LEARNING_RATE = 0.003
-NOISE_LEN     = 128
-HIDDEN_DIM    = 128
-NUM_PREHEAD   = 2
-INSTANCE      = sys.argv[1] 
+problem = problems.pfsp.Pfsp(sys.argv[1])
 
-problem = problems.pfsp.Pfsp(INSTANCE)
+config = {
+    'batch size'    : 32,
+    'num samples'   : 64 ,
+    'noise len'     : 128,
+    'hidden dim'    : 128,
+    'num prehead'   : 1,
+    'learning rate' : 0.003,
+    'instance'      : sys.argv[1].split('/')[-1],
+    'max evals'     : 1000*problem.size**2,
+    'probelm size'  : problem.size,
+}
 
-MAX_EVALS = 1000*problem.size**2
-NUM_ITERS = int(MAX_EVALS/(BATCH_SIZE*NUM_SAMPLES))
+NUM_ITERS = int(config['max evals']/(config['batch size']*config['num samples']))
+
+wandb.init(project='nnco-convergency-experiment', config=config)
 
 # NUM_ITERS = 3 # DEBUG!
 
@@ -42,30 +48,31 @@ def entropy_umd(distrib, reduction=None):
     return H
 
 model = nn.Sequential(
-            torch.nn.Linear(NOISE_LEN, NOISE_LEN),
-            torch.nn.ReLU(),
+            # torch.nn.Linear(NOISE_LEN, NOISE_LEN),
+            # torch.nn.ReLU(),
             UMDHead(
-                input_dim=NOISE_LEN,
+                input_dim=config['noise len'],
                 sample_length=problem.size,
-                num_samples=NUM_SAMPLES,
-                hidden_dim=HIDDEN_DIM,
-                num_prehead_layers=NUM_PREHEAD,
-                # rho_function=rho_functions.LogPNormalization()
+                num_samples=config['num samples'],
+                hidden_dim=config['hidden dim'],
+                num_prehead_layers=config['num prehead'],
             ),
         )
 
-optimizer = Adam(model.parameters(), lr=LEARNING_RATE)
+optimizer = Adam(model.parameters(), lr=config['learning rate'])
 
-log = OrderedDict()
-log['iteration'] =  []
-log['best fitness'] =  []
-log['entropy mean'] =  []
-for i in range(problem.size-1):
-    log[f'entropy-{i}'] = []
+# log = OrderedDict()
+# log['iteration'] =  []
+# log['best fitness'] =  []
+# log['entropy mean'] =  []
+# log['mikel convergency avg'] = []
+# for i in range(problem.size-1):
+#     log[f'entropy-{i}'] = []
 
 best_fitness = []
 for iter in range(NUM_ITERS):
-    x = torch.normal(mean=0, std=1, size=(BATCH_SIZE, NOISE_LEN))
+    x = torch.normal(mean=0, std=1, 
+            size=(config['batch size'], config['noise len']))
     
     samples, logps, distrib = model(x)
 
@@ -88,23 +95,29 @@ for iter in range(NUM_ITERS):
     else:
         best_fitness.append(best_fitness[-1])
     
-    log['iteration'].append(iter)
-    log['best fitness'].append(best_fitness[-1])
+    h = entropy_umd(distrib, reduction='mean')
 
-    H = entropy_umd(distrib)
-    for i, h in enumerate(H):
-        log[f'entropy-{i}'].append(h)
-    log['entropy mean'].append(np.mean(H))
+    # log['iteration'].append(iter)
+    # log['best fitness'].append(best_fitness[-1])
+    # log['mikel convergency avg'].append(h)
+
+    wandb.log({
+        'best fitness': best_fitness[-1],
+        'entropy approx avg': h,
+        'loss': loss.item(),
+    }, step=iter)
 
     # ----------------- #
 
-    print(f'{iter}/{NUM_ITERS} loss: {loss.item()}, mean: {fitness.mean()}, best: {best_fitness[-1]}')
+    print(f'{iter}/{NUM_ITERS} mean: {fitness.mean()}, best: {best_fitness[-1]}')
 
-print(f'Best solution found {best_fitness[-1]}')
-
-log['problem'] = ['pfsp']*NUM_ITERS
-log['instance'] = [INSTANCE.split('/')[-1]]*NUM_ITERS
+# log['problem'] = ['pfsp']*NUM_ITERS
+# log['instance'] = [config['instance']]*NUM_ITERS
 n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-log['num trainable parameters'] = [n_params]*NUM_ITERS
+# log['num trainable parameters'] = [n_params]*NUM_ITERS
+# log_to_csv(log)
 
-log_to_csv(log)
+wandb.config.update({
+    'problem': 'pfsp',
+    'num trainable params': n_params,
+})
