@@ -17,6 +17,8 @@ BATCH_SIZE    = 32
 NUM_SAMPLES   = 64 
 LEARNING_RATE = 0.003
 NOISE_LEN     = 128
+HIDDEN_DIM    = 128
+NUM_PREHEAD   = 2
 INSTANCE      = sys.argv[1] 
 
 problem = problems.pfsp.Pfsp(INSTANCE)
@@ -46,6 +48,8 @@ model = nn.Sequential(
                 input_dim=NOISE_LEN,
                 sample_length=problem.size,
                 num_samples=NUM_SAMPLES,
+                hidden_dim=HIDDEN_DIM,
+                num_prehead_layers=NUM_PREHEAD,
                 # rho_function=rho_functions.LogPNormalization()
             ),
         )
