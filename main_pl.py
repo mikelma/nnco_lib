@@ -5,11 +5,9 @@ import torch.nn as nn
 from pypermu import problems
 from nnco.pl import PLHead
 from nnco import utility
-# from collections import OrderedDict
 import numpy as np
 from scipy.stats import entropy
 import wandb
-# from log import log_to_csv
 
 problem = problems.lop.Lop(sys.argv[1])
 
@@ -70,15 +68,7 @@ model = nn.Sequential(
 
 optimizer = Adam(model.parameters(), lr=config['learning rate'])
 
-# log = OrderedDict()
-# log['iteration'] =  []
-# log['best fitness'] =  []
-# log['entropy mean'] =  []
-# for i in range(problem.size-1):
-#     log[f'entropy-{i}'] = []
-
 best_fitness = []
-# best_solution = None
 for iter in range(NUM_ITERS):
     x = torch.normal(mean=0, std=1, 
             size=(config['batch size'], config['noise len']))
@@ -101,14 +91,7 @@ for iter in range(NUM_ITERS):
     else:
         best_fitness.append(best_fitness[-1])
 
-    # log['iteration'].append(iter)
-    # log['best fitness'].append(best_fitness[-1])
-
     h = np.mean(entropy_pl(distrib))
-
-    # for i, h in enumerate(H):
-    #     log[f'entropy-{i}'].append(h)
-    # log['entropy mean'].append(np.mean(H))
 
     wandb.log({
         'best fitness': best_fitness[-1],
@@ -120,11 +103,7 @@ for iter in range(NUM_ITERS):
 
 print(f'Best solution found {best_fitness[-1]}')
 
-# log['problem'] = ['lop']*NUM_ITERS
-# log['instance'] = [INSTANCE.split('/')[-1]]*NUM_ITERS
 n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-# log['num trainable parameters'] = [n_params]*NUM_ITERS
-# log_to_csv(log)
 
 wandb.config.update({
     'problem': 'lop',

@@ -12,7 +12,6 @@ import wandb
 
 from nnco.umd import UMDHead
 from nnco import utility, rho_functions
-# from log import log_to_csv
 
 problem = problems.pfsp.Pfsp(sys.argv[1])
 
@@ -31,8 +30,6 @@ config = {
 NUM_ITERS = int(config['max evals']/(config['batch size']*config['num samples']))
 
 wandb.init(project='nnco-convergency-experiment', config=config)
-
-# NUM_ITERS = 3 # DEBUG!
 
 def entropy_umd(distrib, reduction=None):
     H = []
@@ -60,14 +57,6 @@ model = nn.Sequential(
         )
 
 optimizer = Adam(model.parameters(), lr=config['learning rate'])
-
-# log = OrderedDict()
-# log['iteration'] =  []
-# log['best fitness'] =  []
-# log['entropy mean'] =  []
-# log['mikel convergency avg'] = []
-# for i in range(problem.size-1):
-#     log[f'entropy-{i}'] = []
 
 best_fitness = []
 for iter in range(NUM_ITERS):
@@ -97,10 +86,6 @@ for iter in range(NUM_ITERS):
     
     h = entropy_umd(distrib, reduction='mean')
 
-    # log['iteration'].append(iter)
-    # log['best fitness'].append(best_fitness[-1])
-    # log['mikel convergency avg'].append(h)
-
     wandb.log({
         'best fitness': best_fitness[-1],
         'entropy approx avg': h,
@@ -111,11 +96,7 @@ for iter in range(NUM_ITERS):
 
     print(f'{iter}/{NUM_ITERS} mean: {fitness.mean()}, best: {best_fitness[-1]}')
 
-# log['problem'] = ['pfsp']*NUM_ITERS
-# log['instance'] = [config['instance']]*NUM_ITERS
 n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-# log['num trainable parameters'] = [n_params]*NUM_ITERS
-# log_to_csv(log)
 
 wandb.config.update({
     'problem': 'pfsp',
