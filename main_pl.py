@@ -7,6 +7,7 @@ from nnco.pl import PLHead
 from nnco import utility
 import numpy as np
 from scipy.stats import entropy
+from collections import OrderedDict
 import wandb
 
 problem = problems.lop.Lop(sys.argv[1])
@@ -15,6 +16,8 @@ config = {
     'batch size'    : 32,
     'num samples'   : 64 ,
     'noise len'     : 128,
+    'num prehead'   : 2,
+    'hidden dim'    : 128,
     'learning rate' : 0.003,
     'instance'      : sys.argv[1].split('/')[-1],
     'max evals'     : 1000*problem.size**2,
@@ -56,15 +59,18 @@ def entropy_pl(ws):
 
     return H
 
-model = nn.Sequential(
-            # torch.nn.Linear(NOISE_LEN, NOISE_LEN),
-            # torch.nn.ReLU(),
-            PLHead(
-                input_dim=config['noise len'],
-                sample_length=problem.size,
-                num_samples=config['num samples'],
-            ),
-        )
+prehead_layers = []
+for i in range(config['num prehead']):
+    in_dim = config['noise len'] if i == 0 else config['hidden dim']
+    prehead_layers.append((f'linear_{i}', torch.nn.Linear(in_dim, config['hidden dim'])))
+    prehead_layers.append((f'relu_{i}', nn.ReLU()))
+
+in_dim = config['noise len'] if config['num prehead'] == 0 else config['hidden dim']
+head = PLHead(input_dim=in_dim,
+              sample_length=problem.size,
+              num_samples=config['num samples'])
+
+model = nn.Sequential(OrderedDict(prehead_layers + [('head', head)]))
 
 optimizer = Adam(model.parameters(), lr=config['learning rate'])
 
