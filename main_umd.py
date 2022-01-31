@@ -6,7 +6,7 @@ import torch.nn as nn
 from pypermu import problems
 from pypermu import utils as permutils
 
-from nnco.umd import UMDHead
+from nnco.umd import UMDHead, LinearParallel
 from nnco import utility, rho_functions
 
 BATCH_SIZE    = 32
@@ -14,7 +14,6 @@ NUM_SAMPLES   = 64
 LEARNING_RATE = 0.003
 NOISE_LEN     = 128
 INSTANCE      = sys.argv[1] 
-NUM_PREHEAD   = 2
 HIDDEN_DIM    = 128
 
 problem = problems.pfsp.Pfsp(INSTANCE)
@@ -23,14 +22,15 @@ MAX_EVALS = 1000*problem.size**2
 NUM_ITERS = int(MAX_EVALS/(BATCH_SIZE*NUM_SAMPLES))
 
 model = nn.Sequential(
-            # torch.nn.Linear(NOISE_LEN, NOISE_LEN),
-            # torch.nn.ReLU(),
+            LinearParallel(
+                in_dim=NOISE_LEN,
+                out_dim=HIDDEN_DIM,
+                num_linears=problem.size,
+                activation=nn.ReLU()),
             UMDHead(
-                input_dim=NOISE_LEN,
+                input_dim=HIDDEN_DIM,
                 sample_length=problem.size,
                 num_samples=NUM_SAMPLES,
-                hidden_dim=HIDDEN_DIM,
-                num_prehead_layers=NUM_PREHEAD,
                 # rho_function=rho_functions.LogPNormalization()
             ),
         )
@@ -42,7 +42,7 @@ for iter in range(NUM_ITERS):
     x = torch.normal(mean=0, std=1, size=(BATCH_SIZE, NOISE_LEN))
     # x = torch.rand(NOISE_LEN*BATCH_SIZE).view(BATCH_SIZE, NOISE_LEN)
     
-    samples, logps = model(x)
+    samples, logps, _ = model(x)
 
     permus = [permutils.transformations.marina2permu(b) for b in samples.cpu().numpy()]
     permus = [permutils.transformations.permu2inverse(batch) for batch in permus]
