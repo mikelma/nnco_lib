@@ -10,7 +10,7 @@ import numpy as np
 
 import wandb
 
-from nnco.umd import UMDHead
+from nnco.umd import UMDHead, LinearParallel
 from nnco import utility, rho_functions
 
 problem = problems.pfsp.Pfsp(sys.argv[1])
@@ -45,15 +45,24 @@ def entropy_umd(distrib, reduction=None):
     return H
 
 model = nn.Sequential(
-            # torch.nn.Linear(NOISE_LEN, NOISE_LEN),
-            # torch.nn.ReLU(),
+            LinearParallel(
+                in_dim=config['noise len'],
+                out_dim=config['hidden dim'],
+                num_linears=problem.size,
+                activation=nn.ReLU()),
             UMDHead(
-                input_dim=config['noise len'],
+                input_dim=config['hidden dim'],
                 sample_length=problem.size,
                 num_samples=config['num samples'],
-                hidden_dim=config['hidden dim'],
-                num_prehead_layers=config['num prehead'],
+                # hidden_dim=config['hidden dim'],
+                # num_prehead_layers=config['num prehead'],
             ),
+
+            # UMDHead(
+            #     input_dim=config['noise len'],
+            #     sample_length=problem.size,
+            #     num_samples=config['num samples'],
+            # ),
         )
 
 optimizer = Adam(model.parameters(), lr=config['learning rate'])
