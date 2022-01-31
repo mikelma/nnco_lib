@@ -19,7 +19,7 @@ class PLHead(nn.Module):
 
         self.linear = nn.Linear(input_dim, sample_length).to(torch.float64)
 
-    def forward(self, x: Tensor) -> tuple[Tensor, Tensor]:
+    def forward(self, x: Tensor) -> tuple[Tensor, Tensor, Tensor]:
         if x.dtype != torch.double: 
             x = x.double()
 
@@ -40,7 +40,7 @@ class PLHead(nn.Module):
         # logps: (batch, num_samples) 
         logps = logps.permute(1, 0)
 
-        return samples, logps
+        return samples, logps, logits.detach()
 
 
 from typing import Optional

@@ -38,7 +38,7 @@ for iter in range(NUM_ITERS):
     # x = torch.ones((BATCH_SIZE, NOISE_LEN))
     # x = torch.zeros((BATCH_SIZE, NOISE_LEN))
     
-    samples, logps = model(x)
+    samples, logps, _ = model(x)
 
     fitness = [problem.evaluate(batch) for batch in samples.cpu().numpy()]
     fitness = torch.as_tensor(fitness, dtype=torch.float32)
