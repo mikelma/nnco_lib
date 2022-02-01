@@ -8,7 +8,8 @@ class PLHead(nn.Module):
             input_dim: int = 128, 
             num_samples: int = 3,
             sample_length: int = 5,
-            rho_function: nn.Module = None):
+            rho_function: nn.Module = None,
+            device: str ='cuda:0'):
 
         super(PLHead, self).__init__()
 
@@ -16,6 +17,7 @@ class PLHead(nn.Module):
         self.sample_length = sample_length
         self.num_samples = num_samples
         self.rho_function = rho_function
+        self.device = device
 
         self.linear = nn.Linear(input_dim, sample_length).to(torch.float64)
 
@@ -28,7 +30,7 @@ class PLHead(nn.Module):
         if self.rho_function != None:
             logits = self.rho_function(logits) 
 
-        dist = PlackettLuce(logits=logits)
+        dist = PlackettLuce(logits=logits, device=self.device)
 
         # samples/logps (num_samples, batch, sample_len)
         samples = dist.sample(sample_shape=[self.num_samples])
@@ -73,7 +75,11 @@ class PlackettLuce(Distribution):
     arg_constraints = {'logits': constraints.real}
     support = constraints.integer_interval(-1, torch.iinfo(torch.int64).max)
 
-    def __init__(self, logits: torch.Tensor, permutation_sizes: Optional[torch.Tensor] = None, validate_args=None):
+    def __init__(self, 
+            logits: torch.Tensor, 
+            permutation_sizes: Optional[torch.Tensor] = None, 
+            validate_args=None,
+            device='cuda:0'):
         batch_shape = logits.shape[:-1]
         max_size = logits.shape[-1]
 
@@ -87,6 +93,7 @@ class PlackettLuce(Distribution):
                 raise ValueError("Plackett-Luce implementation cannot handle logits less than -1e30")
         self.logits = logits
         self.permutation_sizes = permutation_sizes
+        self.device = device 
 
         # Mask is true for invalid indices
         self.mask: torch.Tensor = torch.zeros(
@@ -124,7 +131,7 @@ class PlackettLuce(Distribution):
         super()._validate_sample(value)
         max_int64 = torch.iinfo(torch.int64).max
         if (value.masked_fill(self.mask, max_int64).sort(-1).values
-                != torch.arange(0, value.shape[-1], dtype=torch.int64).masked_fill(self.mask, max_int64)).any():
+                != torch.arange(0, value.shape[-1], dtype=torch.int64, device=self.device).masked_fill(self.mask, max_int64)).any():
             raise ValueError("Not a valid permutation or batch of permutations.")
 
 

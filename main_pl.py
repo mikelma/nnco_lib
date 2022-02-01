@@ -12,6 +12,7 @@ import wandb
 
 problem = problems.lop.Lop(sys.argv[1])
 
+DEVICE = 'cuda:0'
 config = {
     'batch size'    : 32,
     'num samples'   : 64 ,
@@ -50,7 +51,7 @@ def entropy_pl(ws):
     # an entropy list for each n position
     H = [[] for _ in range(problem.size-1)]
     for logits in ws: # for each w vector in the batch
-        for i, h in enumerate(mikel_divergence(torch.exp(logits).numpy())):
+        for i, h in enumerate(mikel_divergence(torch.exp(logits).cpu().numpy())):
             H[i].append(h)
 
     # mean across batch
@@ -68,21 +69,22 @@ for i in range(config['num prehead']):
 in_dim = config['noise len'] if config['num prehead'] == 0 else config['hidden dim']
 head = PLHead(input_dim=in_dim,
               sample_length=problem.size,
-              num_samples=config['num samples'])
+              num_samples=config['num samples'],
+              device=DEVICE)
 
-model = nn.Sequential(OrderedDict(prehead_layers + [('head', head)]))
+model = nn.Sequential(OrderedDict(prehead_layers + [('head', head)])).to(DEVICE)
 
 optimizer = Adam(model.parameters(), lr=config['learning rate'])
 
 best_fitness = []
 for iter in range(NUM_ITERS):
     x = torch.normal(mean=0, std=1, 
-            size=(config['batch size'], config['noise len']))
+            size=(config['batch size'], config['noise len'])).to(DEVICE)
     
     samples, logps, distrib = model(x)
 
     fitness = [problem.evaluate(batch) for batch in samples.cpu().numpy()]
-    fitness = torch.as_tensor(fitness, dtype=torch.float32)
+    fitness = torch.as_tensor(fitness, dtype=torch.float32, device=DEVICE)
 
     u = utility.standarized_utility(fitness)
     loss = -(logps * u).mean()

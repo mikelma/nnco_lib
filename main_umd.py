@@ -15,6 +15,7 @@ from nnco import utility, rho_functions
 
 problem = problems.pfsp.Pfsp(sys.argv[1])
 
+DEVICE = 'cuda:0'
 config = {
     'batch size'    : 32,
     'num samples'   : 64 ,
@@ -63,14 +64,14 @@ model = nn.Sequential(
             #     sample_length=problem.size,
             #     num_samples=config['num samples'],
             # ),
-        )
+        ).to(DEVICE)
 
 optimizer = Adam(model.parameters(), lr=config['learning rate'])
 
 best_fitness = []
 for iter in range(NUM_ITERS):
     x = torch.normal(mean=0, std=1, 
-            size=(config['batch size'], config['noise len']))
+            size=(config['batch size'], config['noise len'])).to(DEVICE)
     
     samples, logps, distrib = model(x)
 
@@ -78,7 +79,7 @@ for iter in range(NUM_ITERS):
     permus = [permutils.transformations.permu2inverse(batch) for batch in permus]
 
     fitness = [problem.evaluate(batch) for batch in permus]
-    fitness = torch.as_tensor(fitness, dtype=torch.float32)
+    fitness = torch.as_tensor(fitness, dtype=torch.float32, device=DEVICE)
 
     u = utility.standarized_utility(fitness)
     loss = (logps * u).mean()
