@@ -71,11 +71,22 @@ config['iterations'] = int(
 prehead = []
 in_dim = config['noise length']
 for i in range(config['prehead layers']):
-    prehead.append(
-        (f'linear_{i}', 
-            nn.Linear(in_dim, config['hidden dim']))
-    )
-    prehead.append((f'relu_{i}', nn.ReLU()))
+    # in the case of NNCO+PL, prehead layers are normal linear layers
+    if config['problem'] == 'lop':
+        prehead.append(
+            (f'linear_{i}', 
+                nn.Linear(in_dim, config['hidden dim'])))
+        prehead.append((f'relu_{i}', nn.ReLU()))
+
+    # in the case of NNCO+UMD, prehead layers are parallel linear layers 
+    else:
+        prehead.append(
+            (f'parlinear_{i}', 
+                nnco.umd.LinearParallel(
+                    num_linears=problem.size, 
+                    in_dim=in_dim, 
+                    out_dim=config['hidden dim'])))
+
     in_dim = config['hidden dim']
 
 if config['problem'] == 'lop':
