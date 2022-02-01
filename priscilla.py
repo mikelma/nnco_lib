@@ -111,7 +111,7 @@ for iter in range(config['iterations']):
     x = torch.normal(mean=0, std=1, 
             size=(config['batch size'], config['noise length']))
 
-    samples, logps = model(x)
+    samples, logps, _ = model(x)
 
     if config['problem'] == 'pfsp':
         # convert marina vectors to permutations
