@@ -31,6 +31,8 @@ parser.add_argument('-n', '--noise-len', metavar='N', type=int, nargs=1,
                     required=True, help='Length of the noise vector')
 parser.add_argument('-o', '--output', metavar='PATH', type=str, nargs=1,
                     required=False, help='Path to write the CSV summary of the experiment to')
+parser.add_argument('-dev', '--device', metavar='DEVICE', type=str, nargs=1,
+        required=True, help='Device to execute the model on: cpu or cuda:0')
 
 args = parser.parse_args()
 
@@ -59,6 +61,7 @@ config = {
     'learning rate': 0.003,
     'utility function': utility.standarized_utility,
 
+    'device': args.device[0],
 } 
 config['iterations'] = int(
         config['max evaluations'] / (config['batch size'] * config['num samples'])
@@ -100,9 +103,10 @@ head = head_class(
         input_dim=config['hidden dim'],
         sample_length=config['problem size'],
         num_samples=config['num samples'],
+        device=config['device'],
 )
 
-model = nn.Sequential(OrderedDict(prehead + [('head', head)]))
+model = nn.Sequential(OrderedDict(prehead + [('head', head)])).to(config['device'])
 
 ## optimizer configuration
 optimizer = Adam(model.parameters(), lr=config['learning rate'])
@@ -120,9 +124,10 @@ start_time = time.time()
 
 for iter in range(config['iterations']):
     x = torch.normal(mean=0, std=1, 
-            size=(config['batch size'], config['noise length']))
+            size=(config['batch size'], config['noise length']),
+            device=config['device'])
 
-    samples, logps, _ = model(x)
+    samples, logps = model(x)
 
     if config['problem'] == 'pfsp':
         # convert marina vectors to permutations
@@ -136,7 +141,7 @@ for iter in range(config['iterations']):
 
     # evaluate samples
     fitness = [problem.evaluate(batch) for batch in permus]
-    fitness = torch.as_tensor(fitness, dtype=torch.float32)
+    fitness = torch.as_tensor(fitness, dtype=torch.float32, device=config['device'])
 
     # compute loss value
     u = config['utility function'](fitness)

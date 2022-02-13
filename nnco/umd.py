@@ -11,7 +11,8 @@ class UMDHead(nn.Module):
             input_dim: int = 128, 
             num_samples: int = 3,
             sample_length: int = 5,
-            rho_function: nn.Module = None):
+            rho_function: nn.Module = None,
+            device: str = 'cpu'):
 
         super(UMDHead, self).__init__()
 
@@ -32,14 +33,12 @@ class UMDHead(nn.Module):
 
         logps = []   # list of (batch_size, 1, num_samples) sized tensors
         samples = [] # same as `logps`
-        distrib = []
         for lin_in, linear in zip(x, self.out_layer):
             logits = linear(lin_in) # logits: (batch_size, sample_length-i)
 
             if self.rho_function != None:
                 logits = self.rho_function(logits) 
 
-            distrib.append(logits.detach())
             dist = Categorical(logits=logits)
 
             s = dist.sample((self.num_samples,)) # s: (num_samples, batch_size)
@@ -58,7 +57,7 @@ class UMDHead(nn.Module):
         # logps: (batch_size, num_samples)
         logps = torch.cat(logps, dim=1).sum(1)
 
-        return samples, logps, distrib
+        return samples, logps
 
 class LinearParallel(nn.Module):
     '''
