@@ -7,6 +7,7 @@ from pypermu import problems
 from pypermu import utils as permutils
 from scipy.stats import entropy
 import numpy as np
+from collections import OrderedDict
 
 import wandb
 
@@ -45,26 +46,20 @@ def entropy_umd(distrib, reduction=None):
 
     return H
 
-model = nn.Sequential(
-            LinearParallel(
-                in_dim=config['noise len'],
-                out_dim=config['hidden dim'],
-                num_linears=problem.size,
-                activation=nn.ReLU()),
-            UMDHead(
-                input_dim=config['hidden dim'],
-                sample_length=problem.size,
-                num_samples=config['num samples'],
-                # hidden_dim=config['hidden dim'],
-                # num_prehead_layers=config['num prehead'],
-            ),
+prehead_layers = []
+for i in range(config['num prehead']):
+    in_dim = config['noise len'] if i == 0 else config['hidden dim']
+    prehead_layers.append((f'parlinear_{i}',
+        LinearParallel(in_dim=in_dim,
+            out_dim=config['hidden dim'],
+            num_linears=problem.size)))
 
-            # UMDHead(
-            #     input_dim=config['noise len'],
-            #     sample_length=problem.size,
-            #     num_samples=config['num samples'],
-            # ),
-        ).to(DEVICE)
+in_dim = config['noise len'] if config['num prehead'] == 0 else config['hidden dim']
+head = UMDHead(input_dim=in_dim,
+               sample_length=problem.size,
+               num_samples=config['num samples'])
+
+model = nn.Sequential(OrderedDict(prehead_layers + [('head', head)])).to(DEVICE)
 
 optimizer = Adam(model.parameters(), lr=config['learning rate'])
 
