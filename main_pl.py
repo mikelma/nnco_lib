@@ -33,6 +33,10 @@ def mikel_divergence(w, reduction=None):
     moda = np.argsort(w)[::-1] # argsort max to min
     n = len(w)
     res = []
+
+    # add an small correction value in order to avoid numerical errors
+    w += 1e-6
+
     for i, e in enumerate(moda[:-1]):
         normalized = w / w.max()
         res.append(entropy(w)/np.log(n-i))
