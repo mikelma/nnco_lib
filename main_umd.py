@@ -63,6 +63,13 @@ model = nn.Sequential(OrderedDict(prehead_layers + [('head', head)])).to(DEVICE)
 
 optimizer = Adam(model.parameters(), lr=config['learning rate'])
 
+n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+wandb.config.update({
+    'problem': 'pfsp',
+    'num trainable params': n_params,
+})
+
 best_fitness = []
 for iter in range(NUM_ITERS):
     x = torch.normal(mean=0, std=1, 
@@ -100,10 +107,3 @@ for iter in range(NUM_ITERS):
     # ----------------- #
 
     print(f'{iter}/{NUM_ITERS} mean: {fitness.mean()}, best: {best_fitness[-1]}')
-
-n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-
-wandb.config.update({
-    'problem': 'pfsp',
-    'num trainable params': n_params,
-})
