@@ -70,6 +70,8 @@ wandb.config.update({
     'num trainable params': n_params,
 })
 
+wandb.watch(model, log='all', log_freq=2)
+
 best_fitness = []
 for iter in range(NUM_ITERS):
     x = torch.normal(mean=0, std=1, 
