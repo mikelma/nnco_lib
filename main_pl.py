@@ -19,7 +19,7 @@ config = {
     'noise len'     : 128,
     'num prehead'   : 2,
     'hidden dim'    : 128,
-    'learning rate' : 0.003,
+    'learning rate' : 0.0003,
     'instance'      : sys.argv[1].split('/')[-1],
     'max evals'     : 1000*problem.size**2,
     'probelm size'  : problem.size,
@@ -35,7 +35,7 @@ def mikel_divergence(w, reduction=None):
     res = []
 
     # add an small correction value in order to avoid numerical errors
-    w += 1e-6
+    w += 1e-200
 
     for i, e in enumerate(moda[:-1]):
         normalized = w / w.max()
