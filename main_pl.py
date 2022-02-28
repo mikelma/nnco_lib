@@ -35,7 +35,7 @@ def mikel_divergence(w, reduction=None):
     res = []
 
     # add an small correction value in order to avoid numerical errors
-    w += 1e-6
+    w += 1e-200
 
     for i, e in enumerate(moda[:-1]):
         normalized = w / w.max()
