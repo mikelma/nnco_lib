@@ -29,6 +29,8 @@ parser.add_argument('-l', '--prehead-layers', metavar='N', type=int, nargs=1,
                     required=True, help='Number of pre-head layers')
 parser.add_argument('-n', '--noise-len', metavar='N', type=int, nargs=1,
                     required=True, help='Length of the noise vector')
+parser.add_argument('-lr', '--learning-rate', metavar='R', type=float, nargs=1,
+                    required=True, help='Learning rate to use')
 parser.add_argument('-o', '--output', metavar='PATH', type=str, nargs=1,
                     required=False, help='Path to write the CSV summary of the experiment to')
 parser.add_argument('-dev', '--device', metavar='DEVICE', type=str, nargs=1,
@@ -58,7 +60,7 @@ config = {
     'prehead layers': args.prehead_layers[0],
 
     'num samples': 64,
-    'learning rate': 0.003,
+    'learning rate': args.learning_rate[0],
     'utility function': utility.standarized_utility,
 
     'device': args.device[0],
