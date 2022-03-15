@@ -16,6 +16,7 @@ from nnco import utility, rho_functions
 
 problem = problems.pfsp.Pfsp(sys.argv[1])
 
+EPSILON = 0.2
 DEVICE = 'cuda:0'
 config = {
     'batch size'    : 32,
@@ -70,6 +71,10 @@ wandb.config.update({
     'num trainable params': n_params,
 })
 
+old_logps = torch.full(
+        (config['batch size'], config['num samples']),
+        np.log(1/config['num samples'])).to(DEVICE)
+
 best_fitness = []
 for iter in range(NUM_ITERS):
     x = torch.normal(mean=0, std=1, 
@@ -83,12 +88,24 @@ for iter in range(NUM_ITERS):
     fitness = [problem.evaluate(batch) for batch in permus]
     fitness = torch.as_tensor(fitness, dtype=torch.float32, device=DEVICE)
 
+    r = torch.exp(logps - old_logps)
+    print(r)
+    quit()
+
     u = utility.standarized_utility(fitness)
-    loss = (logps * u).mean()
+
+    surr1 = r * u
+    surr2 = torch.clamp(r, 1-EPSILON, 1+EPSILON) * u
+    loss = torch.min(surr1, surr2).mean()
+
+    # loss = (logps * u).mean()
 
     optimizer.zero_grad()
     loss.backward()
     optimizer.step()
+
+    # update old logps
+    old_logps = logps.detach()
 
     # ---- logging ---- #
     if len(best_fitness) == 0 or fitness.min() < best_fitness[-1]:
