@@ -5,7 +5,25 @@ import seaborn as sns
 
 plt.rc('font', size=15)
 
-df = pd.read_csv('results.csv')
+# df = pd.read_csv('results.csv')
+# df = pd.read_csv('results_evals_extended_x2.csv')
+df = pd.read_csv('results_evals_extended_x5.csv')
+
+# palette = sns.color_palette("mako_r", 5)
+# palette = sns.color_palette("tab10", 7)
+
+# palette = sns.color_palette("tab10", 5)
+# sns.lineplot(data=df, 
+#         x='num trainable params', 
+#         # x='learning rate',
+#         y='best fitness', 
+#         #hue='num trainable params', 
+#         hue='learning rate',
+#         palette=palette
+# )
+# plt.title('tai20_5_8, 2 repetitions, 500n^2 evals')
+# plt.show()
+# quit()
 
 instance = 'tai20_5_8.fsp'
 # instance = 'tai50_20_8.fsp'
@@ -32,9 +50,8 @@ data /= iters[0][0]
 print(data)
 print(f'Repetitions: {iters[0][0]}')
 
-sns.heatmap(data, annot=True, xticklabels=lrs, yticklabels=num_params)
-# plt.xticks(range(len(lrs)), lrs)
-# plt.yticks(range(len(num_params)), num_params)
+sns.heatmap(data, annot=True, fmt='.2e', xticklabels=lrs, yticklabels=num_params)
+
 plt.xlabel('learning rates')
 plt.ylabel('number of trainable parameters')
 plt.title(f'Instance {instance}')
