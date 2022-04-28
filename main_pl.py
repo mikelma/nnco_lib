@@ -23,6 +23,9 @@ config = {
     'instance'      : sys.argv[1].split('/')[-1],
     'max evals'     : 1000*problem.size**2,
     'probelm size'  : problem.size,
+
+    # regularization beta
+    'reg beta'      : 0.01,
 }
 
 NUM_ITERS = int(config['max evals']/(config['batch size']*config['num samples']))
@@ -100,6 +103,13 @@ for iter in range(NUM_ITERS):
     u = utility.standarized_utility(fitness)
     loss = -(logps * u).mean()
 
+    #### NEW ####
+    # compute the L2 norm of the PL distribution's weights
+    w = distrib.mean(0) # average across batch
+    w_l2 = w.pow(2).sum().sqrt()
+    loss += config['reg beta']*w_l2
+    #### NEW ####
+
     optimizer.zero_grad()
     loss.backward()
     optimizer.step()
@@ -110,11 +120,13 @@ for iter in range(NUM_ITERS):
     else:
         best_fitness.append(best_fitness[-1])
 
-    h = np.mean(entropy_pl(distrib))
+    h = np.mean(entropy_pl(distrib.detach()))
 
     wandb.log({
         'best fitness': best_fitness[-1],
+        'mean fitness': fitness.mean().item(),
         'mikel convergency avg': h,
+        "l2 norm of PL's w": w_l2,
         'loss': loss.item(),
     }, step=iter)
 

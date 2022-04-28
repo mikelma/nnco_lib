@@ -42,7 +42,7 @@ class PLHead(nn.Module):
         # logps: (batch, num_samples) 
         logps = logps.permute(1, 0)
 
-        return samples, logps, logits.detach()
+        return samples, logps, logits
 
 
 from typing import Optional
