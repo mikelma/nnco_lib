@@ -3,6 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
 
+from typing import Tuple
+
 class PLHead(nn.Module):
     def __init__(self, 
             input_dim: int = 128, 
@@ -21,7 +23,7 @@ class PLHead(nn.Module):
 
         self.linear = nn.Linear(input_dim, sample_length).to(torch.float64)
 
-    def forward(self, x: Tensor) -> tuple[Tensor, Tensor, Tensor]:
+    def forward(self, x: Tensor) -> Tuple[Tensor, Tensor, Tensor]:
         if x.dtype != torch.double: 
             x = x.double()
 

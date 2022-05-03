@@ -4,6 +4,8 @@ import torch.nn.functional as F
 from torch import Tensor
 from torch.distributions.categorical import Categorical
 
+from typing import Tuple, List
+
 class UMDHead(nn.Module):
     def __init__(self, 
             input_dim: int = 128, 
@@ -23,7 +25,7 @@ class UMDHead(nn.Module):
             nn.Linear(input_dim, sample_length-i) for i in range(sample_length)
         ])
 
-    def forward(self, x) -> tuple[Tensor, Tensor, list]:
+    def forward(self, x) -> Tuple[Tensor, Tensor, list]:
         if type(x) != list:
             # copy the input tensor `n` times, one for each output distribution
             x = [x]*self.sample_length
@@ -77,7 +79,7 @@ class LinearParallel(nn.Module):
         self.linears = nn.ModuleList(
                 [nn.Linear(in_dim, out_dim) for _ in range(num_linears)])
 
-    def forward(self, x) -> list[Tensor]:
+    def forward(self, x) -> List[Tensor]:
         '''
         If the input `x` is a list of tensors, feeds each linear layer with
         its corresponding input tensor, else, if `x` is a tensor, all linears
