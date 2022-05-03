@@ -14,7 +14,7 @@ from nnco import utility, rho_functions
 
 problem = problems.pfsp.Pfsp(sys.argv[1])
 
-DEVICE = 'cuda:0'
+DEVICE = 'cpu'
 config = {
     'batch size'    : 32,
     'num samples'   : 64 ,
