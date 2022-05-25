@@ -3,7 +3,7 @@ import torch
 from torch.optim import Adam
 import torch.nn as nn
 from pypermu import problems
-from nnco.pl import PLHead
+from nnco.pl import PLHead, PlackettLuce
 from nnco import utility
 import numpy as np
 from scipy.stats import entropy
@@ -22,10 +22,10 @@ config = {
     'learning rate' : 0.003,
     'instance'      : sys.argv[1].split('/')[-1],
     'max evals'     : 1000*problem.size**2,
-    'probelm size'  : problem.size,
+    'problem size'  : problem.size,
 
     # regularization beta
-    'reg beta'      : 0,
+    'reg beta'      : 1,
 }
 
 NUM_ITERS = int(config['max evals']/(config['batch size']*config['num samples']))
@@ -89,6 +89,7 @@ log = {
     'mikel convergency': [],
     'w vec l2 norm': [],
     'loss': [],
+    'tot var dist': [],
 }
 
 best_fitness = []
@@ -105,10 +106,29 @@ for iter in range(NUM_ITERS):
     loss = -(logps * u).mean()
 
     #### NEW ####
+    modas = torch.argsort(distrib, descending=True, dim=-1)
+    antimodas = torch.argsort(distrib, descending=False, dim=-1)
+    permus = torch.cat([modas.unsqueeze(0), antimodas.unsqueeze(0)], dim=0)
+    pl = PlackettLuce(logits=distrib, device=DEVICE)
+    moda_logps, antimoda_logps = pl.log_prob(permus)
+    
+    moda_p = torch.exp(moda_logps.double())
+    antimoda_p = torch.exp(antimoda_logps.double())
+    
+    v = 1/config['problem size']
+    tot_var_dist = torch.max(moda_p - v, antimoda_p - v).mean()
+    print(f'{iter}/{NUM_ITERS} tot var: {tot_var_dist.item()}')
+
+    loss += config['reg beta']*tot_var_dist
+
+    ## loss -= config['reg beta']*torch.exp(moda_logps.mean())
+    
     # compute the L2 norm of the PL distribution's weights
     w = distrib.mean(0) # average across batch
     w_l2 = w.pow(2).sum().sqrt()
-    loss += config['reg beta']*w_l2
+
+    # loss += config['reg beta']*w_l2
+
     #### NEW ####
 
     optimizer.zero_grad()
@@ -126,6 +146,7 @@ for iter in range(NUM_ITERS):
     log['mikel convergency'].append(h)
     log['w vec l2 norm'].append(w_l2.item())
     log['loss'].append(loss.item())
+    log['tot var dist'].append(tot_var_dist.item())
 
     # print(f'{iter}/{NUM_ITERS} mean: {fitness.mean()}, best: {best_fitness[-1]}')
 
