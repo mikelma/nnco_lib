@@ -90,6 +90,7 @@ log = {
     'w vec l2 norm': [],
     'loss': [],
     'tot var dist': [],
+    'mean moda logp': [],
 }
 
 best_fitness = []
@@ -117,11 +118,31 @@ for iter in range(NUM_ITERS):
     
     v = 1/config['problem size']
     tot_var_dist = torch.max(moda_p - v, antimoda_p - v).mean()
-    print(f'{iter}/{NUM_ITERS} tot var: {tot_var_dist.item()}')
+    # print(f'{iter}/{NUM_ITERS} tot var: {tot_var_dist.item()}')
+    # if len(best_fitness) > 0: print(best_fitness[-1], fitness.mean())
 
-    loss += config['reg beta']*tot_var_dist
+    #########################################
+    # TVD Loss
+    # loss += config['reg beta']*tot_var_dist
+    #########################################
 
-    ## loss -= config['reg beta']*torch.exp(moda_logps.mean())
+    #########################################
+    # Moda logP Loss
+    logps_map = {
+            44: -125.317,
+            50: -148.477,
+            56: -172.352,
+            60: -188.628,
+            79: -269.291,
+            150: -605.020,
+            250: -1134.045,
+    }
+
+    logp_uniform = torch.as_tensor(logps_map[config['problem size']])
+    dist_unif = torch.abs(moda_logps.mean() - logp_uniform)
+    loss += config['reg beta']*dist_unif
+    # print(f'loss: {loss.item()}, dist_unif: {dist_unif}\n')
+    #########################################
     
     # compute the L2 norm of the PL distribution's weights
     w = distrib.mean(0) # average across batch
@@ -147,12 +168,11 @@ for iter in range(NUM_ITERS):
     log['w vec l2 norm'].append(w_l2.item())
     log['loss'].append(loss.item())
     log['tot var dist'].append(tot_var_dist.item())
+    log['mean moda logp'].append(moda_logps.mean().item())
 
     # print(f'{iter}/{NUM_ITERS} mean: {fitness.mean()}, best: {best_fitness[-1]}')
 
 log['best fitness'] = best_fitness
 
-# print(f'Best solution found {best_fitness[-1]}')
-
 import log as Log
-Log.save_dicts(config, log, dir='results')
+Log.save_dicts(config, log, dir='results_convergency')
