@@ -1,0 +1,3 @@
+[submodule "pypermu"]
+	path = pypermu
+	url = https://github.com/mikelma/pypermu
