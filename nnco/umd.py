@@ -1,14 +1,14 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torch import Tensor
 from torch.distributions.categorical import Categorical
 
 class UMDHead(nn.Module):
-    def __init__(self, 
-            input_dim: int = 128, 
+    def __init__(self,
+            input_dim: int = 128,
             num_samples: int = 3,
             sample_length: int = 5,
+            device: torch.device = torch.device("cpu"),
             rho_function: nn.Module = None):
 
         super(UMDHead, self).__init__()
@@ -21,10 +21,10 @@ class UMDHead(nn.Module):
         # head layers
         self.out_layer = nn.ModuleList([
             nn.Linear(input_dim, sample_length-i) for i in range(sample_length)
-        ])
+        ]).to(device)
 
     def forward(self, x) -> tuple[Tensor, Tensor, list]:
-        if type(x) != list:
+        if isinstance(x, list):
             # copy the input tensor `n` times, one for each output distribution
             x = [x]*self.sample_length
 
@@ -34,15 +34,15 @@ class UMDHead(nn.Module):
         for lin_in, linear in zip(x, self.out_layer):
             logits = linear(lin_in) # logits: (batch_size, sample_length-i)
 
-            if self.rho_function != None:
-                logits = self.rho_function(logits) 
+            if self.rho_function is not None:
+                logits = self.rho_function(logits)
 
             distrib.append(logits.detach())
             dist = Categorical(logits=logits)
 
             s = dist.sample((self.num_samples,)) # s: (num_samples, batch_size)
             logp = dist.log_prob(s)              # logp: (num_samples, batch_size)
-            
+
             # s: (batch_size, 1, num_samples)
             s = s.T.unsqueeze(1)
             # logps: (batch_size, 1, num_samples)
@@ -85,7 +85,7 @@ class LinearParallel(nn.Module):
         function applied and are returner in a list.
         '''
 
-        if type(x) != list:
+        if isinstance(x, list):
             x = [x]*self.num_linears
 
         result = []

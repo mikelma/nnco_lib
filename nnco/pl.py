@@ -1,13 +1,16 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torch import Tensor
+from typing import Optional
+from torch.distributions import Distribution, constraints
+
 
 class PLHead(nn.Module):
-    def __init__(self, 
-            input_dim: int = 128, 
+    def __init__(self,
+            input_dim: int = 128,
             num_samples: int = 3,
             sample_length: int = 5,
+            device: torch.device = torch.device("cpu"),
             rho_function: nn.Module = None):
 
         super(PLHead, self).__init__()
@@ -17,16 +20,16 @@ class PLHead(nn.Module):
         self.num_samples = num_samples
         self.rho_function = rho_function
 
-        self.linear = nn.Linear(input_dim, sample_length).to(torch.float64)
+        self.linear = nn.Linear(input_dim, sample_length).to(torch.float64).to(device)
 
     def forward(self, x: Tensor) -> tuple[Tensor, Tensor, Tensor]:
-        if x.dtype != torch.double: 
+        if x.dtype != torch.double:
             x = x.double()
 
         logits = self.linear(x)
 
-        if self.rho_function != None:
-            logits = self.rho_function(logits) 
+        if self.rho_function is not None:
+            logits = self.rho_function(logits)
 
         dist = PlackettLuce(logits=logits)
 
@@ -37,16 +40,11 @@ class PLHead(nn.Module):
         # samples: (batch, num_samples, sample_len)
         samples = samples.permute(1, 0, 2)
 
-        # logps: (batch, num_samples) 
+        # logps: (batch, num_samples)
         logps = logps.permute(1, 0)
 
         return samples, logps, logits.detach()
 
-
-from typing import Optional
-
-import torch
-from torch.distributions import Distribution, constraints
 
 class PlackettLuce(Distribution):
     r"""
