@@ -24,7 +24,7 @@ class UMDHead(nn.Module):
         ]).to(device)
 
     def forward(self, x) -> tuple[Tensor, Tensor, list]:
-        if isinstance(x, list):
+        if not isinstance(x, list):
             # copy the input tensor `n` times, one for each output distribution
             x = [x]*self.sample_length
 
@@ -85,7 +85,7 @@ class LinearParallel(nn.Module):
         function applied and are returner in a list.
         '''
 
-        if isinstance(x, list):
+        if not isinstance(x, list):
             x = [x]*self.num_linears
 
         result = []
