@@ -1,90 +1,78 @@
-# nnco-lib: Distribution Estimation with neural networks for combinatorial optimization
+# nnco-lib: A combinatorial optimization framework for probability-based algorithms by means of generative models
 
-This repository contains all the source code employed in the paper *Distribution Estimation with neural networks for
-combinatorial optimization*, as well as instructions and examples on how to use it.
+This repository contains all the source code and data of the paper *A combinatorial optimization framework for probability-based algorithms by means of generative models*.
 
-**NOTE:** The paper hasn't been published yet. Once published,
-a link to the paper will be provided.
+**NOTE:** The paper hasn't been published yet. Once published, a link to the paper will be provided.
 
 **NOTE:** This repository is hosted in [SourceHut](https://git.sr.ht/~mikelma/nnco_lib),
 but a [GitHub](https://github.com/mikelma/nnco_lib) mirror is also maintained
 for convenience.
 
 - ⭐ **Try it online!** ⭐ [Colab notebook](https://colab.research.google.com/drive/1BNtRUHaL6qe2E1CO1mxJORO4o-oPMP5f?usp=sharing)
-- [Jupyter notebook](https://git.sr.ht/~mikelma/nnco_lib/tree/main/item/Estimating_Probability_Distributions_with_Neural_Networks_for_Combinatorial_Optimization.ipynb)
-- [Jupyter notebook (.py version)](https://git.sr.ht/~mikelma/nnco_lib/tree/main/item/estimating_probability_distributions_with_neural_networks_for_combinatorial_optimization.py)
+- [Jupyter notebook](./A_combinatorial_optimization_framework_for_probability_based_algorithms_by_means_of_generative_models.ipynb)
+- [Jupyter notebook (.py version)](./A_combinatorial_optimization_framework_for_probability_based_algorithms_by_means_of_generative_models.py)
 
 ## Abstract
 
-Probability distributions have been successfully used for
-approaching combinatorial optimization problems. However,
-in many cases, using such methods introduce large computational
-overheads, and in some cases, controlling the convergence
-of the algorithm has shown challenging.
+Probability-based algorithms have proven to be a solid alternative for approaching optimization problems. Nevertheless, in many cases, using probabilistic models that efficiently exploit the characteristics of the problem involves large computational overheads, and therefore, lower complexity models such as \mdf{those that are univariate} are usually employed within approximation algorithms.
 
-The aim of this paper is to introduce a new framework that by
-the hand of neural networks is able to efficiently estimate
-probability distributions over the search space of combinatorial
-problems. Particularly, the approach permits to iteratively
-update the parameters of a neural network model whose output
-describes probability distributions that give high probability
-to the solutions of the problem that are likely to have high
-objective function value. Conducted experiments reveal that
-the presented proposal has better performance in terms of objective
-value and execution time when compared to analogous estimation
-of distribution algorithms. Not limited to that, the experimental
-analysis points out a much more controllable convergence of the
-algorithm by adjusting the settings of the neural network.
+With the motivation to address such an issue, in this paper, we aim to introduce an iterative optimization framework that employs generative models to efficiently estimate the parameters of probability models for optimization problems. This allows the use of complex probabilistic models (or those that are appropriate for each problem) in a way that is feasible to apply them iteratively. Specifically, the framework is composed of three elements: a generative model, a probability model whose probability rule is differentiable, and a loss function. The possibility of modifying any of the three elements of the framework offers the flexibility to design algorithms that best adapt to the problem at hand.
+
+Experiments conducted on two case studies reveal that the presented approach has strong performance in terms of objective value and execution time when compared to other probability-based algorithms.
+Moreover, the experimental analysis demonstrates that the convergence of the algorithms is controllable by adjusting the components of the framework.
 
 ## Dependencies
 
-* `pytorch` (tested on 1.12.0)
-* `numpy` (tested on 1.22.3)
-* `matplotlib` (optional, only used in the examples)
-* [`Rust`](https://www.rust-lang.org/learn/get-started) (version 1.41 and up): Used to build [`pypermu`](https://github.com/mikelma/pypermu) (a precompiled binary is provided in this repo, only for Linux x86_64)
+> ⚠️ Note that a [Colab notebook](https://colab.research.google.com/drive/1BNtRUHaL6qe2E1CO1mxJORO4o-oPMP5f?usp=sharing) is available to try the library without needing to install or setup anything.
 
-## How to use
-
-### From a notebook
-
-- [Colab notebook](https://colab.research.google.com/drive/1BNtRUHaL6qe2E1CO1mxJORO4o-oPMP5f?usp=sharing)
-- [Jupyter notebook](https://git.sr.ht/~mikelma/nnco_lib/tree/main/item/Estimating_Probability_Distributions_with_Neural_Networks_for_Combinatorial_Optimization.ipynb)
-- [Jupyter notebook (.py version)](https://git.sr.ht/~mikelma/nnco_lib/tree/main/item/estimating_probability_distributions_with_neural_networks_for_combinatorial_optimization.py)
-
-### Using the library
-
-This repository provides a python module (library) that you can
-use to develop your own experiments. The module is located in the
-`nnco/` directory inside this repo.
-
-Download & build & use:
+The first step is to clone the repo:
 
 ```bash
-mkdir my-own-project
-cd my-own-project
-
-git clone --recurse-submodules https://github.com/mikelma/nnco_lib.git
-
-# Build dependencies
-cd nnco_lib/pypermu && cargo b --release && mv target/release/libpypermu.so ../../pypermu.so
-cd ../..
-
-ln -s nnco_lib/nnco nnco
-
-# If executing the following commands don't produce any errors, you are ready to go!
-echo "import nnco" >> test.py
-echo "from pypermu import problems" >> test.py
-python3 test.py
+git clone https://github.com/mikelma/nnco_lib.git
 ```
 
+Then, install python dependencies
 
-#### Running the examples
+```bash
+pip install -r requirements.txt
+```
 
-The best way to get started is to run the provided examples.
-Examples are located in the `examples/` direcotry within this repo.
+The modules to install are:
 
-In order to run the examples (these steps assume that you have
-followed the instructions above):
+* `torch` 🔥
+* `numpy` 🐍
+* `matplotlib` 🎨 (optional, only used in the examples)
+
+Finally, this repo depends on [`pypermu`](https://github.com/mikelma/pypermu), a python module implemented in Rust. `pypermu` provides fast
+implementations of common permutation optimization problems and operations. For convenience, this repo contains a precompiled binary of the library,
+so you might not need to build it from source. If you need or want to build it from source, see the next section.
+
+### Building pyypermu (optional)
+
+Follow the instructions on Rust's website ([here](https://www.rust-lang.org/learn/get-started)) to set up Rust in your machine.
+
+Clone the repository with submodules:
+
+```bash
+git clone --recurse-submodules https://github.com/mikelma/nnco_lib.git
+```
+
+`cd` into the `pypermu` submodule and build the library (with optimizations) using `cargo`:
+
+```bash
+cd nnco_lib/pypermu && cargo b --release
+```
+
+Finally, move the resulting binary to the `nnco_lib` repo's path
+```bash
+mv target/release/libpypermu.so ../../pypermu.so
+```
+
+## Running the examples
+
+Besides the notebooks, example scripts are located in the `examples/` directory.
+
+To run the examples (assuming that dependencies are installed and working):
 
 ```bash
 # PFSP + UMD
