@@ -83,3 +83,61 @@ python3 main_umd.py instances/PFSP/tai20_5_0.fsp
 cp examples/main_pl.py
 python3 main_pl.py instances/LOP/tai20_5_0.fsp
 ```
+
+## Results from the paper
+
+The results obtained in the paper, the scripts to analyze them, and
+the implementations of all of the considered algorithms are provided
+inside the `experiments/` directory in the repo.
+
+> ⚠️ **NOTE:** All `imgs/` and `results/` directories have been compressed in `.zip` files to reduce the disk space of the repo.
+
+> ⚠️ **NOTE:** All the scripts inside `experiments/analysis/` and `experiments/param-tuning/` have a `requirements.txt` available with the Python dependencies. Some scripts are in the `R` programming language and require a working [`R` interpreter](https://www.r-project.org/).
+
+
+- `experiments/implementations`: contains the implementations of the
+  other algorithms in the paper: GS, RK-EDA, UMDA, and PLEDA.
+
+  The RK-EDA and UMDA algorithms are implemented in Rust programming
+  language. The only requirement to build them is the rust compiler.
+
+  To build RK-EDA or UMDA, just `cd` into their corresponding
+  directory (`implementations/rk-eda` or `implementations/umda`) and
+  run:
+
+  ```bash
+  cargo run --release
+  ```
+
+  The generated binaries should be located inside the `target/release`
+  directory.
+
+  GS and PL-EDA are implemented in C++, and no dependencies are
+  required other than a C++ compiler (you might already have one
+  installed in a Linux machine). To build them, `cd` into their
+  corresponding directories (`implementations/GS` or
+  `implementations/PLEDA`) and run `make`.
+
+- `experiments/analysis`: Provides the scripts (*.py) and data (inside
+  `results/` sub-directories) used to generate the tables and figures
+  of the performance analysis of all algorithms. The directory also
+  contains several sub-directories with the rest of the experiments:
+  the statistical analysis of the performance results (in
+  `stat-analysis/`), the converge analysis (in
+  `convergence-analysis/`), and the experiments done with the
+  penalized loss function (in `penalized-loss/`). All the
+  experiments contain a `requirements.txt` file with the Python
+  dependencies. The only exception is the `stats-analysis/analyze.R`
+  script that requires the `R` programming language's interpreter.
+
+
+-  Contains the resources used in the hyperparameter calibration
+   section of the paper. Results are provided in the `results/`
+   directory. The scripts create the credibility
+   interval plots are implemented in `R`.
+
+## License
+
+This repository is distributed under the terms of the GLPv3
+license. See the [LICENSE](./LICENSE) file for more details, or visit
+the [GPLv3 homepage](https://www.gnu.org/licenses/gpl-3.0.en.html).
