@@ -91,46 +91,48 @@ inside the `experiments/` directory in the repo.
 > ⚠️ **NOTE:** All the scripts inside `experiments/analysis/` and `experiments/param-tuning/` have a `requirements.txt` available with the Python dependencies. Some scripts are in the `R` programming language and require a working [`R` interpreter](https://www.r-project.org/).
 
 
-- `experiments/implementations`: contains the implementations of the
-  other algorithms in the paper: GS, RK-EDA, UMDA, and PLEDA.
+### `experiments/implementations`
+Contains the implementations of the other algorithms in the paper: GS, RK-EDA, UMDA, and PLEDA.
 
-  The RK-EDA and UMDA algorithms are implemented in Rust programming
-  language. The only requirement to build them is the rust compiler.
+The RK-EDA and UMDA algorithms are implemented in Rust programming
+language. The only requirement to build them is the rust compiler.
 
-  To build RK-EDA or UMDA, just `cd` into their corresponding
-  directory (`implementations/rk-eda` or `implementations/umda`) and
-  run:
+To build RK-EDA or UMDA, just `cd` into their corresponding directory
+(`implementations/rk-eda` or `implementations/umda`) and run:
 
-  ```bash
-  cargo run --release
-  ```
+```bash
+cargo run --release
+```
 
-  The generated binaries should be located inside the `target/release`
-  directory.
+The generated binaries should be located inside the `target/release`
+directory.
 
-  GS and PL-EDA are implemented in C++, and no dependencies are
-  required other than a C++ compiler (you might already have one
-  installed in a Linux machine). To build them, `cd` into their
-  corresponding directories (`implementations/GS` or
-  `implementations/PLEDA`) and run `make`.
+GS and PL-EDA are implemented in C++, and no dependencies are required
+other than a C++ compiler (you might already have one installed in a
+Linux machine). To build them, `cd` into their corresponding
+directories (`implementations/GS` or `implementations/PLEDA`) and run
+`make`.
 
-- `experiments/analysis`: Provides the scripts (*.py) and data (inside
-  `results/` sub-directories) used to generate the tables and figures
-  of the performance analysis of all algorithms. The directory also
-  contains several sub-directories with the rest of the experiments:
-  the statistical analysis of the performance results (in
-  `stat-analysis/`), the converge analysis (in
-  `convergence-analysis/`), and the experiments done with the
-  penalized loss function (in `penalized-loss/`). All the
-  experiments contain a `requirements.txt` file with the Python
-  dependencies. The only exception is the `stats-analysis/analyze.R`
-  script that requires the `R` programming language's interpreter.
+### `experiments/analysis`
+
+Provides the scripts (*.py) and data (inside `results/`
+sub-directories) used to generate the tables and figures of the
+performance analysis of all algorithms. The directory also contains
+several sub-directories with the rest of the experiments: the
+statistical analysis of the performance results (in `stat-analysis/`),
+the converge analysis (in `convergence-analysis/`), and the
+experiments done with the penalized loss function (in
+`penalized-loss/`). All the experiments contain a `requirements.txt`
+file with the Python dependencies. The only exception is the
+`stats-analysis/analyze.R` script that requires the `R` programming
+language's interpreter.
 
 
--  Contains the resources used in the hyperparameter calibration
-   section of the paper. Results are provided in the `results/`
-   directory. The scripts create the credibility
-   interval plots are implemented in `R`.
+### `experiments/param-tuning`
+
+Contains the resources used in the hyperparameter calibration section
+of the paper. Results are provided in the `results/` directory. The
+scripts create the credibility interval plots are implemented in `R`.
 
 ## License
 
