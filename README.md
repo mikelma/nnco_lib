@@ -1,8 +1,6 @@
 # A combinatorial optimization framework for probability-based algorithms by means of generative models
 
-This repository contains all the source code and data of the paper *A combinatorial optimization framework for probability-based algorithms by means of generative models*.
-
-> ⚠️ **NOTE:** The paper hasn't been published yet. Once published, a link to the paper will be provided.
+This repository contains all the source code and data of the paper [*A combinatorial optimization framework for probability-based algorithms by means of generative models*](https://dl.acm.org/doi/10.1145/3665650) published in ACM Transactions on Evolutionary Learning and Optimization (TELO).
 
 - ⭐ **Try it online!** ⭐ [Colab notebook](https://colab.research.google.com/drive/1BNtRUHaL6qe2E1CO1mxJORO4o-oPMP5f?usp=sharing)
 - [Jupyter notebook](./A_combinatorial_optimization_framework_for_probability_based_algorithms_by_means_of_generative_models.ipynb)
